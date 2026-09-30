@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Custom Webhook Generator</title>
+</head>
+<body>
+  <h1>Create Your Own Webhook</h1>
+  <button onclick="createWebhook()">Generate Webhook URL</button>
+
+  <div id="url-container" style="margin-top: 20px;"></div>
+  <h3>Your Webhook Logs:</h3>
+  <pre id="logs-container">No messages yet...</pre>
+
+  <script>
+    let currentWebhookId = '';
+
+    async function createWebhook() {
+      // Ask the server for a new unique webhook URL
+      const response = await fetch('/api/create-webhook');
+      const data = await response.json();
+      
+      currentWebhookId = data.webhookId;
+      document.getElementById('url-container').innerHTML = `
+        <p><strong>Your Unique Webhook URL:</strong></p>
+        <code>${data.webhookUrl}</code>
+      `;
+
+      // Start checking for incoming messages every 3 seconds
+      setInterval(checkLogs, 3000);
+    }
+
+    async function checkLogs() {
+      if (!currentWebhookId) return;
+
+      const response = await fetch(`/api/logs/${currentWebhookId}`);
+      const logs = await response.json();
+      document.getElementById('logs-container').textContent = JSON.stringify(logs, null, 2);
+    }
+  </script>
+</body>
+</html>
